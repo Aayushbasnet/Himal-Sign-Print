@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Gallery | Himal Sign Print</title>
+    <meta
+      name="description"
+      content="Google Photos-style mobile gallery for Himal Sign Print projects in flex, vinyl, canvas, fabric, translite, and one-way vision."
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap");
+
+      :root {
+        --bg: #eef3ee;
+        --surface: #ffffff;
+        --ink: #1f252f;
+        --muted: #5a6777;
+        --line: #d7deea;
+        --red: #ed1c24;
+        --green: #07a651;
+        --blue: #0d5fbe;
+        --brand-gradient: linear-gradient(125deg, var(--red) 0%, var(--green) 52%, var(--blue) 100%);
+        --shadow: 0 10px 28px rgba(13, 95, 190, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 0% 0%, rgba(237, 28, 36, 0.12) 0, transparent 30%),
+          radial-gradient(circle at 100% 20%, rgba(7, 166, 81, 0.14) 0, transparent 25%),
+          radial-gradient(circle at 80% 100%, rgba(13, 95, 190, 0.14) 0, transparent 32%),
+          var(--bg);
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(980px, 94vw);
+        margin: 0 auto;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        backdrop-filter: blur(10px);
+        background: color-mix(in srgb, #fff, transparent 20%);
+        border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 30%);
+      }
+
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+      }
+
+      .logo-badge {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+        background: #fff;
+        flex-shrink: 0;
+      }
+
+      .logo-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: none;
+      }
+
+      .logo-fallback {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-weight: 800;
+        background: var(--brand-gradient);
+      }
+
+      .app-search {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 11px 14px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid var(--line);
+        box-shadow: 0 8px 20px rgba(31, 37, 47, 0.08);
+      }
+
+      .app-search strong {
+        font-size: 0.96rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .app-search small {
+        color: var(--muted);
+      }
+
+      .back-home {
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      main {
+        padding: 18px 0 36px;
+      }
+
+      .chips {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        scrollbar-width: thin;
+      }
+
+      .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .chip.active {
+        border: 0;
+        color: #fff;
+        background: var(--brand-gradient);
+      }
+
+      .gallery-group {
+        margin-top: 22px;
+      }
+
+      .group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .group-header h2 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .group-header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        grid-auto-flow: dense;
+      }
+
+      .photo-card {
+        margin: 0;
+      }
+
+      .photo-btn {
+        width: 100%;
+        border: 0;
+        background: #fff;
+        padding: 0;
+        border-radius: 14px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(31, 37, 47, 0.12);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        aspect-ratio: 4 / 3;
+      }
+
+      .photo-btn:hover,
+      .photo-btn:focus-visible {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 26px rgba(31, 37, 47, 0.18);
+      }
+
+      .photo-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.28s ease;
+      }
+
+      .photo-btn:hover img,
+      .photo-btn:focus-visible img {
+        transform: scale(1.05);
+      }
+
+      .photo-btn span {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        font-size: 0.75rem;
+        color: #fff;
+        background: linear-gradient(90deg, rgba(31, 37, 47, 0.84), rgba(31, 37, 47, 0.2));
+        border-radius: 8px;
+        padding: 6px 8px;
+      }
+
+      .photo-card.wide {
+        grid-column: span 2;
+      }
+
+      .photo-card.tall .photo-btn {
+        aspect-ratio: 3 / 4;
+      }
+
+      .viewer {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(10, 16, 28, 0.86);
+      }
+
+      .viewer.open {
+        display: flex;
+      }
+
+      .viewer-panel {
+        width: min(980px, 94vw);
+        background: #0f1624;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .viewer-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        color: #fff;
+        padding: 10px 12px;
+        background: rgba(15, 22, 36, 0.9);
+      }
+
+      .viewer-top strong {
+        font-size: 0.9rem;
+      }
+
+      .viewer-close {
+        border: 0;
+        border-radius: 8px;
+        width: 34px;
+        height: 34px;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      .viewer-media {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+      }
+
+      .viewer-nav {
+        border: 0;
+        background: transparent;
+        color: #fff;
+        width: 44px;
+        height: 44px;
+        font-size: 1.4rem;
+        cursor: pointer;
+      }
+
+      .viewer-image-wrap {
+        max-height: min(72vh, 660px);
+      }
+
+      .viewer-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .viewer-caption {
+        margin: 0;
+        color: #d0d8e6;
+        font-size: 0.86rem;
+        padding: 0 12px 12px;
+      }
+
+      footer {
+        padding: 16px 0 26px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      @media (max-width: 720px) {
+        .app-search small {
+          display: none;
+        }
+
+        .back-home {
+          padding: 10px 12px;
+          font-size: 0.84rem;
+        }
+
+        .gallery-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .photo-card.wide {
+          grid-column: span 1;
+        }
+
+        .viewer-media {
+          grid-template-columns: 1fr;
+          gap: 8px;
+          padding: 0 8px 10px;
+        }
+
+        .viewer-nav {
+          width: 100%;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.12);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a href="index.html" class="logo-badge" aria-label="Back to home">
+          <img id="brand-logo" class="logo-image" src="logo.jpeg" alt="Himal Sign Print logo" />
+          <span id="logo-fallback" class="logo-fallback">HS</span>
+        </a>
+
+        <div class="app-search" aria-label="Gallery header">
+          <strong>Himal Sign Print Gallery</strong>
+          <small>Memories • Projects • Prints</small>
+        </div>
+
+        <a class="back-home" href="index.html#gallery">Back</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="chips" aria-label="Gallery filters">
+          <span class="chip active">All photos</span>
+          <span class="chip">Flex</span>
+          <span class="chip">Vinyl</span>
+          <span class="chip">Canvas</span>
+          <span class="chip">Fabric</span>
+          <span class="chip">Translite</span>
+          <span class="chip">One Way Vision</span>
+        </div>
+
+        <section class="gallery-group">
+          <div class="group-header">
+            <h2>Today</h2>
+            <p>Outdoor campaign installs</p>
+          </div>
+          <div class="gallery-grid">
+            <figure class="photo-card wide">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/6620991/pexels-photo-6620991.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&dpr=1" data-caption="Large outdoor flex banner print">
+                <img src="https://images.pexels.com/photos/6620991/pexels-photo-6620991.jpeg?auto=compress&cs=tinysrgb&w=900&h=700&dpr=1" alt="Large outdoor flex banner" loading="lazy" />
+                <span>Outdoor flex banner</span>
+              </button>
+            </figure>
+            <figure class="photo-card tall">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/20042067/pexels-photo-20042067.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1400&dpr=1" data-caption="Vehicle graphics and one-way vision printing">
+                <img src="https://images.pexels.com/photos/20042067/pexels-photo-20042067.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&dpr=1" alt="Vehicle branding" loading="lazy" />
+                <span>Vehicle branding</span>
+              </button>
+            </figure>
+            <figure class="photo-card">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/6620976/pexels-photo-6620976.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&dpr=1" data-caption="Roadside billboard print output">
+                <img src="https://images.pexels.com/photos/6620976/pexels-photo-6620976.jpeg?auto=compress&cs=tinysrgb&w=900&h=700&dpr=1" alt="Billboard style print" loading="lazy" />
+                <span>Billboard print</span>
+              </button>
+            </figure>
+            <figure class="photo-card">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/6620985/pexels-photo-6620985.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&dpr=1" data-caption="UV vinyl signage production">
+                <img src="https://images.pexels.com/photos/6620985/pexels-photo-6620985.jpeg?auto=compress&cs=tinysrgb&w=900&h=700&dpr=1" alt="UV vinyl signage" loading="lazy" />
+                <span>UV vinyl signage</span>
+              </button>
+            </figure>
+          </div>
+        </section>
+
+        <section class="gallery-group">
+          <div class="group-header">
+            <h2>This Week</h2>
+            <p>Indoor display and branding</p>
+          </div>
+          <div class="gallery-grid">
+            <figure class="photo-card">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/5490175/pexels-photo-5490175.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&dpr=1" data-caption="Silk and fabric display print">
+                <img src="https://images.pexels.com/photos/5490175/pexels-photo-5490175.jpeg?auto=compress&cs=tinysrgb&w=900&h=700&dpr=1" alt="Fabric display" loading="lazy" />
+                <span>Fabric display</span>
+              </button>
+            </figure>
+            <figure class="photo-card wide">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/5641955/pexels-photo-5641955.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&dpr=1" data-caption="Backlit translite setup for indoor branding">
+                <img src="https://images.pexels.com/photos/5641955/pexels-photo-5641955.jpeg?auto=compress&cs=tinysrgb&w=900&h=700&dpr=1" alt="Backlit translite board" loading="lazy" />
+                <span>Backlit translite</span>
+              </button>
+            </figure>
+            <figure class="photo-card tall">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/19316517/pexels-photo-19316517.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1400&dpr=1" data-caption="Retail branding panel print">
+                <img src="https://corporatesignindustries.com.au/hubfs/CSI%20-%20August%20email%20blog%20image%20(6).png" alt="Retail branding panel" loading="lazy" />
+                <span>Branding panel</span>
+              </button>
+            </figure>
+            <figure class="photo-card">
+              <button class="photo-btn" type="button" data-photo="https://images.pexels.com/photos/6620999/pexels-photo-6620999.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&dpr=1" data-caption="Canvas display prints">
+                <img src="https://images.pexels.com/photos/6620999/pexels-photo-6620999.jpeg?auto=compress&cs=tinysrgb&w=900&h=700&dpr=1" alt="Canvas style output" loading="lazy" />
+                <span>Canvas output</span>
+              </button>
+            </figure>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">© <span id="year"></span> Himal Sign Print. The first and last step in printing.</div>
+    </footer>
+
+    <div class="viewer" id="viewer" aria-hidden="true">
+      <div class="viewer-panel" role="dialog" aria-modal="true" aria-label="Photo viewer">
+        <div class="viewer-top">
+          <strong id="viewer-title">Photo</strong>
+          <button class="viewer-close" id="viewer-close" type="button" aria-label="Close viewer">×</button>
+        </div>
+        <div class="viewer-media">
+          <button class="viewer-nav" id="viewer-prev" type="button" aria-label="Previous photo">←</button>
+          <div class="viewer-image-wrap">
+            <img id="viewer-image" class="viewer-image" src="" alt="Gallery preview" />
+          </div>
+          <button class="viewer-nav" id="viewer-next" type="button" aria-label="Next photo">→</button>
+        </div>
+        <p class="viewer-caption" id="viewer-caption"></p>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      const logoImg = document.getElementById("brand-logo");
+      const logoFallback = document.getElementById("logo-fallback");
+      if (logoImg && logoFallback) {
+        const showLogo = () => {
+          logoImg.style.display = "block";
+          logoFallback.style.display = "none";
+        };
+        logoImg.addEventListener("load", showLogo);
+        logoImg.addEventListener("error", () => {
+          logoImg.style.display = "none";
+          logoFallback.style.display = "grid";
+        });
+        if (logoImg.complete && logoImg.naturalWidth > 0) showLogo();
+      }
+
+      const viewer = document.getElementById("viewer");
+      const viewerImage = document.getElementById("viewer-image");
+      const viewerCaption = document.getElementById("viewer-caption");
+      const viewerTitle = document.getElementById("viewer-title");
+      const closeBtn = document.getElementById("viewer-close");
+      const prevBtn = document.getElementById("viewer-prev");
+      const nextBtn = document.getElementById("viewer-next");
+
+      const photos = [...document.querySelectorAll("[data-photo]")].map(btn => ({
+        src: btn.dataset.photo,
+        caption: btn.dataset.caption || "Project photo",
+        thumb: btn.querySelector("img")?.src || "",
+        trigger: btn
+      }));
+
+      let activeIndex = 0;
+
+      const renderViewer = () => {
+        const item = photos[activeIndex];
+        if (!item) return;
+        viewerImage.src = item.src;
+        viewerCaption.textContent = item.caption;
+        viewerTitle.textContent = `${activeIndex + 1} of ${photos.length}`;
+      };
+
+      const openViewer = index => {
+        activeIndex = index;
+        renderViewer();
+        viewer.classList.add("open");
+        viewer.setAttribute("aria-hidden", "false");
+      };
+
+      const closeViewer = () => {
+        viewer.classList.remove("open");
+        viewer.setAttribute("aria-hidden", "true");
+      };
+
+      const showNext = () => {
+        activeIndex = (activeIndex + 1) % photos.length;
+        renderViewer();
+      };
+
+      const showPrev = () => {
+        activeIndex = (activeIndex - 1 + photos.length) % photos.length;
+        renderViewer();
+      };
+
+      photos.forEach((item, index) => {
+        item.trigger.addEventListener("click", () => openViewer(index));
+      });
+
+      closeBtn.addEventListener("click", closeViewer);
+      nextBtn.addEventListener("click", showNext);
+      prevBtn.addEventListener("click", showPrev);
+
+      viewer.addEventListener("click", event => {
+        if (event.target === viewer) closeViewer();
+      });
+
+      document.addEventListener("keydown", event => {
+        if (!viewer.classList.contains("open")) return;
+        if (event.key === "Escape") closeViewer();
+        if (event.key === "ArrowRight") showNext();
+        if (event.key === "ArrowLeft") showPrev();
+      });
+    </script>
+  </body>
+</html>
